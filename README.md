@@ -18,12 +18,63 @@ docker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "n
 
 Go to the Neo4j browser on http://localhost:7474 and login with `neo4j/password`.
 
-Run the following APOC procedures to read data from SQL Server 
+Create the `movies` database and switch to it : 
 
 ```cypher
-CALL apoc.load.jdbc('jdbc:sqlserver://sqlserver:1433;databaseName=movies;user=sa;password=npaEzszSALRH5q56372zGJ;encrypt=false', 'Person')
-//
-CALL apoc.load.jdbc('jdbc:sqlserver://sqlserver:1433;databaseName=movies;user=sa;password=npaEzszSALRH5q56372zGJ;encrypt=false', 'Movie')
-//
-CALL apoc.load.jdbc('jdbc:sqlserver://sqlserver:1433;databaseName=movies;user=sa;password=npaEzszSALRH5q56372zGJ;encrypt=false', 'ActedIn')
+CREATE DATABASE movies WAIT;
+```
+
+```cypher
+:USE movies
+```
+
+Create the constraints and indexes
+
+```cypher
+CREATE CONSTRAINT FOR (n:Person) REQUIRE n.id IS NODE KEY;
+CREATE CONSTRAINT FOR (m:Movie) REQUIRE m.id IS NODE KEY;
+CREATE CONSTRAINT FOR (n:Person) REQUIRE n.name IS :: STRING;
+CREATE CONSTRAINT FOR (n:Person) REQUIRE n.born IS :: DATE;
+CREATE CONSTRAINT FOR (m:Movie) REQUIRE m.title IS :: STRING;
+CREATE CONSTRAINT FOR (m:Movie) REQUIRE m.released IS :: DATE;
+CREATE FULLTEXT INDEX Person FOR (n:Person) ON EACH [n.name];
+CREATE FULLTEXT INDEX Movie FOR (m:Movie) ON EACH [m.title];
+```
+
+Load the `Person` table from SQLServer and create `Person` nodes : 
+
+
+```cypher
+CALL apoc.load.jdbc(
+    'jdbc:sqlserver://sqlserver:1433;databaseName=movies;user=sa;password=npaEzszSALRH5q56372zGJ;encrypt=false',
+     'Person'
+) YIELD row
+MERGE (n:Person {id: row.id})
+SET n.name = row.name
+SET n.born = date(row.born);
+```
+
+Load the `Movie` table from SQLServer and create `Movie` nodes : 
+
+```cypher
+CALL apoc.load.jdbc(
+    'jdbc:sqlserver://sqlserver:1433;databaseName=movies;user=sa;password=npaEzszSALRH5q56372zGJ;encrypt=false',
+     'Movie'
+) YIELD row
+MERGE (n:Movie {id: row.id})
+SET n.title = row.title
+SET n.tagline = row.tagline
+SET n.released = date(row.released);
+```
+
+Load the `ActedIn` table from SQLServer and create the `ACTED_IN` relationships : 
+
+```cypher
+CALL apoc.load.jdbc(
+    'jdbc:sqlserver://sqlserver:1433;databaseName=movies;user=sa;password=npaEzszSALRH5q56372zGJ;encrypt=false',
+     'ActedIn'
+) YIELD row
+MATCH (n:Person {id: row.person_id})
+MATCH (m:Movie {id: row.movie_id})
+MERGE (n)-[:ACTED_IN]->(m);
 ```
