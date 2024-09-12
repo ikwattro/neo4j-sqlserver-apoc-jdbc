@@ -18,6 +18,25 @@ docker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "n
 
 Go to the Neo4j browser on http://localhost:7474 and login with `neo4j/password`.
 
+Query data from the SQL database : 
+
+```cypher
+WITH 
+"select p.name, m.title 
+from Person p 
+left join ActedIn a ON a.person_id = p.id 
+left join Movie m ON m.id = a.movie_id " 
+AS sql
+CALL apoc.load.jdbc(
+    'jdbc:sqlserver://sqlserver:1433;databaseName=movies;user=sa;password=npaEzszSALRH5q56372zGJ;encrypt=false',
+    sql, []
+) YIELD row
+RETURN row.name AS name, row.title AS movie
+LIMIT 5
+```
+
+![Data loaded from SQLServer](./assets/sql-data.png)
+
 Create the `movies` database and switch to it : 
 
 ```cypher
