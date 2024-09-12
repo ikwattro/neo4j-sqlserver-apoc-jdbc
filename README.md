@@ -140,3 +140,14 @@ CALL (row) {
     SET p.Age = row.Age
 } IN TRANSACTIONS OF 5000 ROWS
 ```
+
+If you need to run SQL commands from the command line, you can run the following : 
+
+```bash
+docker exec -it sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "npaEzszSALRH5q56372zGJ" -d movies -C -Q 'SELECT COUNT(*) FROM People;'
+
+-----------
+     100000
+
+(1 rows affected)
+```
