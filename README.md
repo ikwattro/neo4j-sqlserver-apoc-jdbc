@@ -78,3 +78,12 @@ MATCH (n:Person {id: row.person_id})
 MATCH (m:Movie {id: row.movie_id})
 MERGE (n)-[:ACTED_IN]->(m);
 ```
+
+Verify : 
+
+```cypher
+MATCH path=()-[:ACTED_IN]->()
+RETURN path
+```
+
+![Movies Graph loaded from SQLServer](./assets/graph.png)
