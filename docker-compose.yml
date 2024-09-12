@@ -27,6 +27,8 @@ services:
       timeout: 5s
     ports:
       - 1433:1433
+    volumes:
+      - "./sql/people_data.xml:/sql/people_data.xml"
   sql-init:
     image: ikwattro/sqlcmd:slim
     container_name: init-sqlserver
@@ -35,4 +37,4 @@ services:
         condition: service_healthy
     command: ["sqlcmd", "-S", "sqlserver", "-U", "sa", "-P", "npaEzszSALRH5q56372zGJ", "-i", "/sql/init.sql", "-C"]
     volumes:
-      - "./sql:/sql"
+      - "./sql/init.sql:/sql/init.sql"

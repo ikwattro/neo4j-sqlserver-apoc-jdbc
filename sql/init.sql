@@ -5,7 +5,6 @@ GO
 USE movies;
 GO
 
--- Create tables or insert data here (optional)
 CREATE TABLE Person (
     id INT PRIMARY KEY,
     name NVARCHAR(255),
@@ -385,6 +384,10 @@ VALUES
     (165, 162);
 GO
 
+
+ALTER DATABASE movies SET RECOVERY SIMPLE;
+
+
 --- LARGE TABLE
 
 CREATE TABLE People (
@@ -395,45 +398,48 @@ CREATE TABLE People (
 );
 GO
 
-CREATE PROCEDURE InsertRandomData
-AS
+-- Step 1: Load the XML into a temporary table
+DECLARE @PeopleXML XML;
+
+-- Load XML into a variable
+SELECT @PeopleXML = BulkColumn
+FROM OPENROWSET(BULK '/sql/people_data.xml', SINGLE_BLOB) AS x;
+
+-- Create a temporary table to store parsed data
+CREATE TABLE #TempPeople (
+    RowNum INT IDENTITY(1,1),
+    Name NVARCHAR(255),
+    Age INT,
+    Email NVARCHAR(255)
+);
+
+-- Step 2: Parse and store the XML data in the temporary table
+INSERT INTO #TempPeople (Name, Age, Email)
+SELECT 
+    Person.value('(Name)[1]', 'NVARCHAR(255)') AS Name,
+    Person.value('(Age)[1]', 'INT') AS Age,
+    Person.value('(Email)[1]', 'NVARCHAR(255)') AS Email
+FROM @PeopleXML.nodes('/PeopleData/Person') AS XTbl(Person);
+
+DECLARE @BatchSize INT = 5000;  -- Adjust batch size for your system
+DECLARE @BatchStart INT = 1;
+DECLARE @TotalRows INT;
+
+-- Get the total number of rows
+SELECT @TotalRows = COUNT(*) FROM #TempPeople;
+
+-- Insert data in batches
+WHILE @BatchStart <= @TotalRows
 BEGIN
-    DECLARE @FirstName NVARCHAR(50), @LastName NVARCHAR(50), @FullName NVARCHAR(100), @Age INT, @Email NVARCHAR(100);
+    INSERT INTO People (Name, Age, Email)
+    SELECT Name, Age, Email
+    FROM #TempPeople
+    WHERE RowNum BETWEEN @BatchStart AND @BatchStart + @BatchSize - 1;
 
-    -- Insert 1 million rows
-    DECLARE @counter INT = 0;
-    WHILE @counter < 5000
-    BEGIN
-        -- Random First Name
-        SELECT @FirstName = Name FROM (VALUES
-            ('John'), ('Jane'), ('Michael'), ('Sarah'), ('James'), ('Laura'), 
-            ('David'), ('Emily'), ('Robert'), ('Sophia')
-        ) AS FirstNames(Name) ORDER BY NEWID();
-
-        -- Random Last Name
-        SELECT @LastName = Name FROM (VALUES
-            ('Smith'), ('Johnson'), ('Williams'), ('Brown'), ('Jones'), 
-            ('Garcia'), ('Miller'), ('Davis'), ('Rodriguez'), ('Martinez')
-        ) AS LastNames(Name) ORDER BY NEWID();
-
-        -- Combine first and last name
-        SET @FullName = @FirstName + ' ' + @LastName;
-
-        -- Random Age between 18 and 98
-        SET @Age = CAST(ABS(CHECKSUM(NEWID()) % 80) + 18 AS INT);
-
-        -- Random Email
-        SET @Email = LOWER(REPLACE(@FullName, ' ', '.')) + '@example.com';
-
-        -- Insert the data into the table
-        INSERT INTO People (Name, Age, Email) 
-        VALUES (@FullName, @Age, @Email);
-
-        SET @counter = @counter + 1;
-    END
+    -- Move to the next batch
+    SET @BatchStart = @BatchStart + @BatchSize;
 END;
-GO
 
--- Step 3: Execute the stored procedure to insert 1 million rows
-EXEC InsertRandomData;
+-- Drop the temporary table
+DROP TABLE #TempPeople;
 GO
