@@ -34,6 +34,7 @@ CALL apoc.load.jdbc(
 RETURN row.name AS name, row.title AS movie
 LIMIT 5
 ```
+![Data loaded from SQLServer](./assets/sql-data.png)
 
 The jdbc connection url is aliased in the `apoc.conf` file : 
 
@@ -60,8 +61,6 @@ CALL apoc.load.jdbc('movies', 'select top 5 name from Person', [])
 │{name: "Lilly Wachowski"}   │
 └────────────────────────────┘
 ```
-
-![Data loaded from SQLServer](./assets/sql-data.png)
 
 Create the `movies` database and switch to it : 
 
