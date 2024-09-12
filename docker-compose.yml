@@ -19,7 +19,20 @@ services:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=npaEzszSALRH5q56372zGJ
       - MSSQL_PID=Express
+    healthcheck:
+      test: "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P npaEzszSALRH5q56372zGJ -Q 'SELECT 1' -C || exit 1"
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 5s
     ports:
       - 1433:1433
+  sql-init:
+    image: ikwattro/sqlcmd:slim
+    container_name: init-sqlserver
+    depends_on:
+      sql-server:
+        condition: service_healthy
+    command: ["sqlcmd", "-S", "sqlserver", "-U", "sa", "-P", "npaEzszSALRH5q56372zGJ", "-i", "/sql/init.sql", "-C"]
     volumes:
       - "./sql:/sql"
