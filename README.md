@@ -35,6 +35,32 @@ RETURN row.name AS name, row.title AS movie
 LIMIT 5
 ```
 
+The jdbc connection url is aliased in the `apoc.conf` file : 
+
+```text
+apoc.jdbc.movies.url=jdbc:sqlserver://sqlserver:1433;databaseName=movies;user=sa;password=npaEzszSALRH5q56372zGJ;encrypt=false
+```
+
+And thus all procedure calls can be used using the `movies` alias insteead : 
+
+```cypher
+CALL apoc.load.jdbc('movies', 'select top 5 name from Person', [])
+
+╒════════════════════════════╕
+│row                         │
+╞════════════════════════════╡
+│{name: "Keanu Reeves"}      │
+├────────────────────────────┤
+│{name: "Carrie-Anne Moss"}  │
+├────────────────────────────┤
+│{name: "Laurence Fishburne"}│
+├────────────────────────────┤
+│{name: "Hugo Weaving"}      │
+├────────────────────────────┤
+│{name: "Lilly Wachowski"}   │
+└────────────────────────────┘
+```
+
 ![Data loaded from SQLServer](./assets/sql-data.png)
 
 Create the `movies` database and switch to it : 
@@ -65,7 +91,7 @@ Load the `Person` table from SQLServer and create `Person` nodes :
 
 ```cypher
 CALL apoc.load.jdbc(
-    'jdbc:sqlserver://sqlserver:1433;databaseName=movies;user=sa;password=npaEzszSALRH5q56372zGJ;encrypt=false',
+    'movies',
      'Person'
 ) YIELD row
 MERGE (n:Person {id: row.id})
@@ -77,7 +103,7 @@ Load the `Movie` table from SQLServer and create `Movie` nodes :
 
 ```cypher
 CALL apoc.load.jdbc(
-    'jdbc:sqlserver://sqlserver:1433;databaseName=movies;user=sa;password=npaEzszSALRH5q56372zGJ;encrypt=false',
+    'movies',
      'Movie'
 ) YIELD row
 MERGE (n:Movie {id: row.id})
@@ -90,7 +116,7 @@ Load the `ActedIn` table from SQLServer and create the `ACTED_IN` relationships 
 
 ```cypher
 CALL apoc.load.jdbc(
-    'jdbc:sqlserver://sqlserver:1433;databaseName=movies;user=sa;password=npaEzszSALRH5q56372zGJ;encrypt=false',
+    'movies',
      'ActedIn'
 ) YIELD row
 MATCH (n:Person {id: row.person_id})

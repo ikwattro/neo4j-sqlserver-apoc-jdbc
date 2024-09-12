@@ -11,6 +11,7 @@ services:
       - NEO4J_PLUGINS=["apoc","apoc-extended"]
     volumes:
       - "./driver/mssql-jdbc-12.8.1.jre11.jar:/plugins/mssql-jdbc-driver.jar"
+      - "./conf/apoc.conf:/conf/apoc.conf"
   sql-server:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sqlserver
