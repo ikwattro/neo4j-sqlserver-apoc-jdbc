@@ -125,3 +125,18 @@ RETURN path
 ```
 
 ![Movies Graph loaded from SQLServer](./assets/graph.png)
+
+
+Another table `People` exist as well, it is populated with 5000 rows to demonstrate loading data in transactions of X rows.
+
+```cypher
+:auto
+CALL apoc.load.jdbc('movies', 'select * from People', [])
+YIELD row
+CALL (row) {
+    MERGE (p:Peope {id: row.ID})
+    SET p.name = row.Name
+    SET p.Email = row.Email
+    SET p.Age = row.Age
+} IN TRANSACTIONS OF 200 ROWS
+```

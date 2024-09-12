@@ -384,3 +384,56 @@ VALUES
     (164, 162),
     (165, 162);
 GO
+
+--- LARGE TABLE
+
+CREATE TABLE People (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100),
+    Age INT,
+    Email NVARCHAR(100)
+);
+GO
+
+CREATE PROCEDURE InsertRandomData
+AS
+BEGIN
+    DECLARE @FirstName NVARCHAR(50), @LastName NVARCHAR(50), @FullName NVARCHAR(100), @Age INT, @Email NVARCHAR(100);
+
+    -- Insert 1 million rows
+    DECLARE @counter INT = 0;
+    WHILE @counter < 5000
+    BEGIN
+        -- Random First Name
+        SELECT @FirstName = Name FROM (VALUES
+            ('John'), ('Jane'), ('Michael'), ('Sarah'), ('James'), ('Laura'), 
+            ('David'), ('Emily'), ('Robert'), ('Sophia')
+        ) AS FirstNames(Name) ORDER BY NEWID();
+
+        -- Random Last Name
+        SELECT @LastName = Name FROM (VALUES
+            ('Smith'), ('Johnson'), ('Williams'), ('Brown'), ('Jones'), 
+            ('Garcia'), ('Miller'), ('Davis'), ('Rodriguez'), ('Martinez')
+        ) AS LastNames(Name) ORDER BY NEWID();
+
+        -- Combine first and last name
+        SET @FullName = @FirstName + ' ' + @LastName;
+
+        -- Random Age between 18 and 98
+        SET @Age = CAST(ABS(CHECKSUM(NEWID()) % 80) + 18 AS INT);
+
+        -- Random Email
+        SET @Email = LOWER(REPLACE(@FullName, ' ', '.')) + '@example.com';
+
+        -- Insert the data into the table
+        INSERT INTO People (Name, Age, Email) 
+        VALUES (@FullName, @Age, @Email);
+
+        SET @counter = @counter + 1;
+    END
+END;
+GO
+
+-- Step 3: Execute the stored procedure to insert 1 million rows
+EXEC InsertRandomData;
+GO
