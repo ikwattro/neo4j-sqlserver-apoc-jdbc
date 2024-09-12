@@ -1,0 +1,24 @@
+services:
+  neo4j:
+    image: neo4j:5.23.0-enterprise
+    container_name: neo4j
+    ports:
+      - 7474:7474
+      - 7687:7687
+    environment:
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_PLUGINS=["apoc","apoc-extended"]
+    volumes:
+      - "./driver/mssql-jdbc-12.8.1.jre11.jar:/plugins/mssql-jdbc-driver.jar"
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=npaEzszSALRH5q56372zGJ
+      - MSSQL_PID=Express
+    ports:
+      - 1433:1433
+    volumes:
+      - "./sql:/sql"

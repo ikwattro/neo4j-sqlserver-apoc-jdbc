@@ -1,0 +1,49 @@
+# General OS X and system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Mac specific metadata files
+Icon?
+._*
+
+# Thumbnails
+Thumbs.db
+
+# Folders that should not be versioned
+.trash
+.cache
+logs/
+temp/
+tmp/
+node_modules/
+
+# Ignore Docker volumes
+docker-volume/
+
+# Ignore Docker logs
+**/logs/
+**/*.log
+
+# Python specific (if Python is used in the project)
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# Ignore environment variables
+.env
+
+# Ignore sensitive files
+credentials/
+secrets/
+keys/
+
+# Ignore local IDE configurations
+.idea/
+.vscode/
+
+# Ignore OS X backup files
+*.swp
+*~ 
+*.swo
